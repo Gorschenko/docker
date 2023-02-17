@@ -1,25 +1,47 @@
 version: '3'
+
 services:
   frontend:
     build: ./frontend
     restart: always
     ports:
       - '3000:3000'
+    volumes:
+      # переиспользуем папку node_modules. Указывать до мэпинга
+      - /app/node_modules
+      # до двоеточия - путь к локальной папке (1), после - в контейнере (2)
+      # для разработки заменяется 1 на 2
+      - ./frontend:/app
+
   api:
     build: ./api
     restart: always
     ports:
       - '5555:5000'
+    # определяет порядок запуска
     depends_on:
       - mysql
+    # описание выше
+    volumes:
+      - /app/node_modules
+      - ./api:/app
+
   mysql:
     image: mysql
     restart: always
     environment:
       MYSQL_ROOT_PASSWORD: password
       MYSQL_DATABASE: time_db
+    # записываем и используем данные базы из внешнего тома
+    volumes:
+      - mysql_data:/var/lib/mysql
+
   adminer:
     image: adminer
     restart: always
     ports:
       - '8888:8080'
+
+volumes:
+  #создаем том для базы
+  mysql_data:
